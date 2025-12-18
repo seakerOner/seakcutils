@@ -42,6 +42,7 @@ Lock-free communication primitives for inter-thread messaging.
 - **SPSC (Single Producer / Single Consumer) channel**
 - **SPMC (Single Producer / Multiple Consumers) channel**
 - **MPSC (Multiple Producers / Single Consumer) channel**
+- **MPMC (Multiple Producers / Multiple Consumers) channel**
 
 Key characteristics:
 - lock-free algorithms using C11 atomics

@@ -12,6 +12,21 @@ This project aims to provide lock-free, minimal-overhead communication primitive
  - **Lock-free MPSC channel** for communication from multiple producer threads to a single consumer thread
  - **Lock-free MPMC channel** for communication from multiple producer threads to multiple consumer threads
 
+### Channel Comparison
+
+| Channel Type | Producers | Consumers | Lock-free | Blocking / Spin-wait | Use Case | Notes |
+|--------------|-----------|-----------|-----------|--------------------|----------|-------|
+| **SPSC** (Single Producer / Single Consumer) | 1 | 1 | ✅ | Spin-waits if full/empty | High-performance queue between 1 producer and 1 consumer | Minimal overhead, fully cache-line aligned, safest and fastest option |
+| **SPMC** (Single Producer / Multiple Consumers) | 1 | N | ✅ | Producer blocks if full, consumers spin-wait if empty | Single thread dispatching tasks to multiple workers | Each element consumed exactly once; suitable for thread pools |
+| **MPSC** (Multiple Producers / Single Consumer) | N | 1 | ✅ | Producers spin-wait if full, consumer blocks if empty | Multiple producers pushing work to a single worker | Safe coordination using per-slot sequence numbers |
+| **MPMC** (Multiple Producers / Multiple Consumers) | N | N | ✅ | Producers and consumers spin-wait | High-contention scenarios with multiple threads producing and consuming | Maintains atomic counters for active senders/receivers for safe destruction; fully lock-free |
+
+#### Notes
+
+- All channels are **bounded ring buffers** with predictable memory usage.  
+- **Spin-waiting** ensures lock-free correctness but may be CPU-intensive.  
+- **Element size** is arbitrary, but users must provide the correct size when creating the channel.  
+- **Lifecycle management**: All channels require explicit closing of senders/receivers and destruction.  
 ---
 ### SPSC Channel
 
@@ -287,3 +302,62 @@ int main() {
     - `CHANNEL_ERR_CLOSED`: Channel is closed.
     - `CHANNEL_ERR_EMPTY`: Receive failed; buffer is empty.
 - `cpu_relax()`: Spin-wait function for producers. Can be used externally for custom waiting logic.
+
+---
+
+### MPMC Channel
+
+#### Features
+
+- **Lock-free MPMC channel** for communication between **multiple producer** threads and **multiple consumer** threads.
+- Maintains atomic counters for active producers and consumers to support safe destruction.
+- Producers spin-wait if the buffer is full; consumers spin-wait if the buffer is empty.
+- Supports arbitrary element types via `elem_size`.
+- All memory is allocated at creation; no hidden allocations during send/receive operations.
+
+#### Design Notes
+
+- **Multiple Producers**
+    - Each producer acquires a slot via an atomic fetch-and-add on the head cursor.
+    - Each sender maintains its own active state and updates the shared producer count for safe destruction.
+- **Multiple Consumers**
+    - Each consumer acquires a slot via an atomic fetch-and-add on the tail cursor.
+    - Each receiver maintains its own active state and updates the shared consumer count for safe destruction.
+- **Backpressure**
+    - Producers and consumers spin-wait when the channel is full or empty, ensuring no overwriting of unread elements.
+- **Explicit lifecycle management**
+    - Users must close senders and receivers explicitly before destroying the channel.
+
+#### API
+
+```c
+typedef struct ChannelMpmc_t ChannelMpmc;
+
+ChannelMpmc *channel_create_mpmc(size_t capacity, size_t elem_size);
+void mpmc_close(ChannelMpmc *chan);
+ChanState mpmc_is_closed(ChannelMpmc *chan);
+void mpmc_destroy(ChannelMpmc *chan);
+
+typedef struct SenderMpmc_t SenderMpmc;
+typedef struct ReceiverMpmc_t ReceiverMpmc;
+
+SenderMpmc *mpmc_get_sender(ChannelMpmc *chan);
+ReceiverMpmc *mpmc_get_receiver(ChannelMpmc*chan);
+
+void mpmc_close_receiver(ReceiverMpmc *sender);
+void mpmc_close_sender(SenderMpmc *sender);
+int mpmc_send(SenderMpmc *sender, const void *element);
+int mpmc_recv(ReceiverMpmc *receiver, void *out);
+
+```
+#### Notes
+
+- **Thread-safety**: Safe for multiple producers and multiple consumers.
+- **Ring buffer behavior**: Wrap-around is handled with per-slot sequence numbers and modulo arithmetic.
+- **Element size**: Supports arbitrary element types via elem_size. Users must provide the correct size.
+- **Error handling**:
+    - `CHANNEL_ERR_NULL`: Null pointer provided.
+    - `CHANNEL_ERR_CLOSED`: Channel or sender/receiver is closed.
+    - `CHANNEL_ERR_EMPTY`: Receive failed; buffer is empty.
+- Spin-wait (`cpu_relax`) is used internally for contention; may be CPU-intensive under high load.
+- Destruction waits for all active senders and receivers to finish, ensuring safe memory deallocation.
