@@ -19,7 +19,6 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-
 #ifndef SPSC_CHANNEL
 #define SPSC_CHANNEL
 /* ==========================================================================
@@ -46,7 +45,7 @@ typedef struct ChannelSpsc_t ChannelSpsc;
  * @param elem_size Size of each element in bytes
  * @return Pointer to a newly allocated channel, or NULL on failure
  */
-ChannelSpsc *channel_create_spsc(size_t capacity, size_t elem_size);
+ChannelSpsc *channel_create_spsc(const size_t capacity, const size_t elem_size);
 
 /**
  * Destroys a channel and frees all associated memory.
@@ -69,7 +68,7 @@ void spsc_close(ChannelSpsc *chan);
  * @param chan Pointer to the channel
  * @return OPEN or CLOSED
  */
-ChanState spsc_is_closed(ChannelSpsc *chan);
+ChanState spsc_is_closed(const ChannelSpsc *chan);
 
 typedef struct SenderSpsc_t SenderSpsc;
 

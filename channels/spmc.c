@@ -19,7 +19,6 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-
 /* SPMC - Single Producer Multiple Consumer Channel */
 
 #include "spmc.h"
@@ -44,7 +43,7 @@ typedef struct ChannelSpmc_t {
 
 } ChannelSpmc;
 
-ChannelSpmc *channel_create_spmc(size_t capacity, size_t elem_size) {
+ChannelSpmc *channel_create_spmc(const size_t capacity,const size_t elem_size) {
   ChannelSpmc *chan = malloc(sizeof(ChannelSpmc));
 
   if (!chan) {
@@ -72,18 +71,8 @@ void spmc_close(ChannelSpmc *chan) {
   atomic_store_explicit(&chan->state, CLOSED, memory_order_release);
 };
 
-ChanState spmc_is_closed(ChannelSpmc *chan) {
-  ChanState state = atomic_load_explicit(&chan->state, memory_order_acquire);
-  switch (state) {
-  case OPEN:
-    return OPEN;
-  case CLOSED:
-    return CLOSED;
-  }
-
-  // NOTE: The channel should always have state set, because of that if no valid
-  // state is found we return CLOSED state
-  return CLOSED;
+ChanState spmc_is_closed(const ChannelSpmc *chan) {
+  return atomic_load_explicit(&chan->state, memory_order_acquire);
 };
 
 void spmc_destroy(ChannelSpmc *chan) {

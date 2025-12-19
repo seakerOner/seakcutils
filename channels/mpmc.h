@@ -26,9 +26,9 @@
 
 typedef struct ChannelMpmc_t ChannelMpmc;
 
-ChannelMpmc *channel_create_mpmc(size_t capacity, size_t elem_size);
+ChannelMpmc *channel_create_mpmc(const size_t capacity,const size_t elem_size);
 void mpmc_close(ChannelMpmc *chan);
-ChanState mpmc_is_closed(ChannelMpmc *chan);
+ChanState mpmc_is_closed(const ChannelMpmc *chan);
 void mpmc_destroy(ChannelMpmc *chan);
 
 typedef struct SenderMpmc_t SenderMpmc;

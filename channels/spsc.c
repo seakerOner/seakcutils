@@ -19,7 +19,6 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-
 /* SPSC - Single Producer Single Consumer Channel */
 
 #include "spsc.h"
@@ -41,7 +40,7 @@ typedef struct ChannelSpsc_t {
   _Atomic ChanState state; // 0 -> Open | 1 -> Closed
 } ChannelSpsc;
 
-ChannelSpsc *channel_create_spsc(size_t capacity, size_t elem_size) {
+ChannelSpsc *channel_create_spsc(const size_t capacity,const size_t elem_size) {
   ChannelSpsc *chan = malloc(sizeof(ChannelSpsc));
 
   if (!chan) {
@@ -69,18 +68,8 @@ void spsc_close(ChannelSpsc *chan) {
   atomic_store_explicit(&chan->state, CLOSED, memory_order_release);
 }
 
-ChanState spsc_is_closed(ChannelSpsc *chan) {
-  ChanState state = atomic_load_explicit(&chan->state, memory_order_acquire);
-  switch (state) {
-  case OPEN:
-    return OPEN;
-  case CLOSED:
-    return CLOSED;
-  }
-
-  // NOTE: The channel should always have state set, because of that if no valid
-  // state is found we return CLOSED state
-  return CLOSED;
+ChanState spsc_is_closed(const ChannelSpsc *chan) {
+  return atomic_load_explicit(&chan->state, memory_order_acquire);
 }
 
 void spsc_destroy(ChannelSpsc *chan) {
@@ -110,7 +99,6 @@ typedef struct ReceiverSpsc_t {
   _Atomic size_t *head;
   _Atomic size_t *tail;
 } ReceiverSpsc;
-
 
 SenderSpsc *spsc_get_sender(ChannelSpsc *chan) {
   if (!chan) {
@@ -187,4 +175,3 @@ int spsc_recv(ReceiverSpsc *receiver, void *out) {
   atomic_fetch_add_explicit(receiver->tail, 1, memory_order_relaxed);
   return CHANNEL_OK;
 }
-

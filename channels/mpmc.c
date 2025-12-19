@@ -43,7 +43,8 @@ typedef struct ChannelMpmc_t {
 
 } ChannelMpmc;
 
-ChannelMpmc *channel_create_mpmc(size_t capacity, size_t elem_size) {
+ChannelMpmc *channel_create_mpmc(const size_t capacity,
+                                 const size_t elem_size) {
   ChannelMpmc *chan = malloc(sizeof(ChannelMpmc));
 
   if (!chan) {
@@ -72,18 +73,8 @@ void mpmc_close(ChannelMpmc *chan) {
   atomic_store_explicit(&chan->state, CLOSED, memory_order_release);
 };
 
-ChanState mpmc_is_closed(ChannelMpmc *chan) {
-  ChanState state = atomic_load_explicit(&chan->state, memory_order_acquire);
-  switch (state) {
-  case OPEN:
-    return OPEN;
-  case CLOSED:
-    return CLOSED;
-  }
-
-  // NOTE: The channel should always have state set, because of that if no valid
-  // state is found we return CLOSED state
-  return CLOSED;
+ChanState mpmc_is_closed(const ChannelMpmc *chan) {
+  return atomic_load_explicit(&chan->state, memory_order_acquire);
 };
 
 void mpmc_destroy(ChannelMpmc *chan) {

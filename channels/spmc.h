@@ -27,9 +27,9 @@
 
 typedef struct ChannelSpmc_t ChannelSpmc;
 
-ChannelSpmc *channel_create_spmc(size_t capacity, size_t elem_size);
+ChannelSpmc *channel_create_spmc(const size_t capacity,const size_t elem_size);
 void spmc_close(ChannelSpmc *chan);
-ChanState spmc_is_closed(ChannelSpmc *chan);
+ChanState spmc_is_closed(const ChannelSpmc *chan);
 void spmc_destroy(ChannelSpmc *chan);
 
 typedef struct SenderSpmc_t SenderSpmc;

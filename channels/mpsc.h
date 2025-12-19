@@ -27,9 +27,9 @@
 
 typedef struct ChannelMpsc_t ChannelMpsc;
 
-ChannelMpsc *channel_create_mpsc(size_t capacity, size_t elem_size);
+ChannelMpsc *channel_create_mpsc(const size_t capacity,const size_t elem_size);
 void mpsc_close(ChannelMpsc *chan);
-ChanState mpsc_is_closed(ChannelMpsc *chan);
+ChanState mpsc_is_closed(const ChannelMpsc *chan);
 void mpsc_destroy(ChannelMpsc *chan);
 
 typedef struct SenderMpsc_t SenderMpsc;

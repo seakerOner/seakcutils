@@ -51,9 +51,9 @@ typedef struct ChannelSpsc_t ChannelSpsc;
 typedef struct SenderSpsc_t SenderSpsc;
 typedef struct ReceiverSpsc_t ReceiverSpsc;
 
-ChannelSpsc *channel_create_spsc(size_t capacity, size_t elem_size);
+ChannelSpsc *channel_create_spsc(const size_t capacity,const size_t elem_size);
 void spsc_close(ChannelSpsc *chan);
-ChanState spsc_is_closed(ChannelSpsc *chan);
+ChanState spsc_is_closed(const ChannelSpsc *chan);
 void spsc_destroy(ChannelSpsc *chan);
 
 SenderSpsc *spsc_get_sender(ChannelSpsc *chan);
@@ -173,9 +173,9 @@ typedef struct ChannelSpmc_t ChannelSpmc;
 typedef struct SenderSpmc_t SenderSpmc;
 typedef struct ReceiverSpmc_t ReceiverSpmc;
 
-ChannelSpmc *channel_create_spmc(size_t capacity, size_t elem_size);
+ChannelSpmc *channel_create_spmc(const size_t capacity,const size_t elem_size);
 void spmc_close(ChannelSpmc *chan);
-ChanState spmc_is_closed(ChannelSpmc *chan);
+ChanState spmc_is_closed(const ChannelSpmc *chan);
 void spmc_destroy(ChannelSpmc *chan);
 
 SenderSpmc *spmc_get_sender(ChannelSpmc *chan);
@@ -207,9 +207,9 @@ typedef struct ChannelMpsc_t  ChannelMpsc;
 
 typedef struct Slot_t Slot;
 
-ChannelMpsc *channel_create_mpsc(size_t capacity, size_t elem_size);
+ChannelMpsc *channel_create_mpsc(const size_t capacity,const size_t elem_size);
 void mpsc_close(ChannelMpsc *chan);
-ChanState mpsc_is_closed(ChannelMpsc *chan);
+ChanState mpsc_is_closed(const ChannelMpsc *chan);
 void mpsc_destroy(ChannelMpsc *chan);
 
 typedef struct SenderMpsc_t SenderMpsc;
@@ -333,9 +333,9 @@ int main() {
 ```c
 typedef struct ChannelMpmc_t ChannelMpmc;
 
-ChannelMpmc *channel_create_mpmc(size_t capacity, size_t elem_size);
+ChannelMpmc *channel_create_mpmc(const size_t capacity,const size_t elem_size);
 void mpmc_close(ChannelMpmc *chan);
-ChanState mpmc_is_closed(ChannelMpmc *chan);
+ChanState mpmc_is_closed(const ChannelMpmc *chan);
 void mpmc_destroy(ChannelMpmc *chan);
 
 typedef struct SenderMpmc_t SenderMpmc;
