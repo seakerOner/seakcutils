@@ -1,39 +1,26 @@
 #ifndef STRING_ARENA_H
 #define STRING_ARENA_H
-/*
-StringArena — Design & Invariants
---------------------------------
+// Copyright 2025 Seaker <seakerone@proton.me>
 
-StringArena is a minimal string arena allocator that stores multiple
-null-terminated strings in a single contiguous memory buffer.
+// Permission is hereby granted, free of charge, to any person obtaining
+// a copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to
+// permit persons to whom the Software is furnished to do so, subject to
+// the following conditions:
 
-Core invariants:
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
 
-1. `data` points to a contiguous memory region of size `size` bytes.
-2. Strings are stored back-to-back and are always null-terminated (`'\0'`).
-3. `offsets[i]` stores the starting byte offset of the i-th string in `data`.
-4. `count` is the number of strings currently stored.
-5. `capacity` is the allocated capacity of the `offsets` array (not bytes).
-6. Offsets are monotonically increasing.
-7. `arena_getS()` returns a pointer to a valid C string as long as the arena
-   is not resized or freed.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-Memory model:
-
-- Individual strings are NOT allocated separately.
-- All string data lives in a single growable buffer.
-- Returned string pointers remain valid until:
-  - `arena_addS()` reallocates the buffer
-  - `arena_free()` is called
-  - `arena_reset()` is called
-
-This design favors:
-- Cache locality
-- Fewer allocations
-- Simple lifetime management
-
-This is a minimal implementation, not thread-safe.
-*/
 
 
 #include <stddef.h>
