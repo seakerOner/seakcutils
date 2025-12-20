@@ -23,6 +23,11 @@ This project aims to provide lock-free, minimal-overhead communication primitive
 
 #### Notes
 
+- Benchmarks were run without batching
+- MPSC channel on a 4-producer / 1-consumer setup:
+    - Sustained throughput: ~13 million messages per second
+    - Stable under long-running workloads (400M+ messages)
+
 - **Spin-waiting** ensures lock-free correctness but may be CPU-intensive.  
 - **Element size** is arbitrary, but users must provide the correct size when creating the channel.  
 - **Lifecycle management**: All channels require explicit closing of senders/receivers and destruction.  

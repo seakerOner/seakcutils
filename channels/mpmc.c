@@ -31,15 +31,15 @@
 
 typedef struct ChannelMpmc_t {
   Slot *buffer;
+  _Atomic ChanState state; // 0 -> Open | 1 -> Closed
+	
+  size_t capacity;         // number of elements
+  size_t elem_size;        // sizeof(T)
   ProducerCursor producer;
   ConsumerCursor consumer;
 
-  size_t capacity;  // number of elements
-  size_t elem_size; // sizeof(T)
-
   _Atomic size_t cons_cont; // Number of active consumers
   _Atomic size_t prod_cont; // Number of active producers
-  _Atomic ChanState state;  // 0 -> Open | 1 -> Closed
 
 } ChannelMpmc;
 

@@ -32,17 +32,17 @@
 
 typedef struct ChannelMpsc_t {
   Slot *buffer;
-  ProducerCursor producer;
-  ConsumerCursor consumer;
-
   size_t capacity;  // number of elements
   size_t elem_size; // sizeof(T)
+  ProducerCursor producer;
+  ConsumerCursor consumer;
 
   _Atomic size_t prod_cont; // Number of active producers
   _Atomic ChanState state;  // 0 -> Open | 1 -> Closed
 } ChannelMpsc;
 
-ChannelMpsc *channel_create_mpsc(const size_t capacity,const size_t elem_size) {
+ChannelMpsc *channel_create_mpsc(const size_t capacity,
+                                 const size_t elem_size) {
   ChannelMpsc *chan = malloc(sizeof(ChannelMpsc));
 
   if (!chan) {

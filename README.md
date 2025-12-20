@@ -45,6 +45,10 @@ Lock-free communication primitives for inter-thread messaging.
 - **MPMC (Multiple Producers / Multiple Consumers) channel**
 
 Key characteristics:
+- Benchmarks were run without batching
+- **MPSC channel** on a **4-producer** / **1-consumer** setup:
+    - Sustained **throughput**: ~**13 million messages per second**
+    - Stable under long-running workloads (400M+ messages)
 - lock-free algorithms using C11 atomics
 - bounded ring buffers
 - cache-line alignment to avoid false sharing
@@ -67,6 +71,21 @@ Design goals:
 - clean shutdown semantics
 
     See `threadpool/README.md` for details.
+
+---
+### Arenas (`arenas/`)
+
+Arena-style memory allocators for fast, predictable allocation patterns.
+- String Arena: stores null-terminated strings contiguously, indexed by offsets
+- Generic Arena: stores fixed-size elements of any type, supports dynamic growth or fixed capacity
+
+Key characteristics:
+- Linear allocation with amortized O(1) insertion
+- Explicit lifetime management (reset, free)
+- Contiguous memory storage improves cache locality
+- Minimal API, no hidden allocations or per-element frees
+
+See `arenas/README.md` for detailed API documentation.
 
 ---
 
