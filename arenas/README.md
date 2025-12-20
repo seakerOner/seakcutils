@@ -78,8 +78,8 @@ typedef struct {
 StringArena arena_s_create(void);
 void arena_addS(StringArena *arena, const char *val);
 const char *arena_getS(StringArena *arena, size_t i);
-void arend_reset(StringArena *arena);
-void arena_free(StringArena *arena);
+void arena_s_free(StringArena *arena);
+void arena_s_reset(StringArena *arena);
 ```
 
 ## Notes
