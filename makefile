@@ -10,10 +10,11 @@ endif
 
 BUILD = ./build/
 THREADPOOL = ./threadpool/
+JOBSYSTEM = ./job_system/
 CHANNELS = ./channels/
 ARENAS = ./arenas/
 
-test: main.o threadpool.o spmc.o
+test: main.o jobsystem.o threadpool.o mpmc.o arena.o
 	$(CC) $(BUILD)*.o -o $(BUILD)/test
 
 main.o: main.c $(THREADPOOL)threadpool.h
@@ -22,6 +23,10 @@ main.o: main.c $(THREADPOOL)threadpool.h
 # Build threadpool 
 threadpool.o: $(THREADPOOL)threadpool.h $(THREADPOOL)threadpool.c 
 	$(CC) $(FLAGS) -c $(THREADPOOL)threadpool.c -o $(BUILD)threadpool.o
+
+# Build jobSystem
+jobsystem.o: $(JOBSYSTEM)jobsystem.h $(JOBSYSTEM)jobsystem.c 
+	$(CC) $(FLAGS) -c $(JOBSYSTEM)jobsystem.c -o $(BUILD)jobsystem.o
 
 # Build SPSC Channel
 spsc.o: $(CHANNELS)spsc.c $(CHANNELS)spsc.h
@@ -64,3 +69,11 @@ bench_mpsc:
 	gcc -O3 -march=native -pthread ./benchmarks/bench_mpsc.c \
         $(CHANNELS)mpsc.c \
         -o $(BUILD)bench_mpsc
+
+bench_job_system:
+	gcc -O3 -march=native -pthread ./benchmarks/job_system/job_sys_parallel_bench.c \
+        $(JOBSYSTEM)jobsystem.c \
+	$(CHANNELS)mpmc.c \
+	$(ARENAS)arena.c \
+	$(THREADPOOL)threadpool.c \
+        -o $(BUILD)bench_job_system

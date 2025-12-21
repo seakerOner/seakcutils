@@ -58,6 +58,7 @@ void  arena_reset(Arena *arena);
 
 // Element operations
 int arena_add(Arena *arena, const void *val);        // Returns 0 on success, non-zero on error
+void *arena_alloc(Arena *arena);                    // Returns allocated pointer to add value (Doesn't resize capacity)
 const void *arena_get(Arena *arena, size_t i);      // Returns pointer to element i
 const void *arena_get_last(Arena *arena);           // Returns pointer to last element
 int arena_pop(Arena *arena, void *out);             // Removes last element and copies to out

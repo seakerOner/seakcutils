@@ -73,6 +73,35 @@ Design goals:
     See `threadpool/README.md` for details.
 
 ---
+### Job System (`job_system/`)
+
+A **dependency-aware job scheduling** system built on top of the thread pool.
+
+> **Job System Limitation**
+>
+> The current Job System uses a fixed-size arena (4096 jobs).
+> When the arena reaches capacity, it is reset and any pending or scheduled jobs
+> become invalid.
+>
+> A region-based arena is planned to provide stable job handles, reuse, and
+> unbounded job creation. Until then, this job system should be considered
+> experimental and not suitable for production workloads.
+
+- Key features:
+    - Job continuations: schedule dependent jobs automatically when prerequisites complete
+    - Parallel execution: multiple worker threads execute independent jobs concurrently
+    - Deterministic single-threaded execution: job order is guaranteed when using 1 worker thread
+    - Lock-free and low-overhead: leverages MPMC channels and atomic counters
+    - No dynamic allocation during execution: job handles allocated in a pre-allocated arena
+- Design notes:
+    - Jobs are fire-and-forget, with no returned result
+    - Continuation dependencies are enforced
+    - Multi-threaded execution may run independent jobs in any order, while still respecting dependencies
+    - Users can combine jobs with existing channels for complex pipelines
+
+    See `job_system/README.md` for full API details, usage examples, and guarantees.
+
+---
 ### Arenas (`arenas/`)
 
 Arena-style memory allocators for fast, predictable allocation patterns.

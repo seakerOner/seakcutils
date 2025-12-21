@@ -22,6 +22,7 @@
 #ifndef THREADPOOL_H
 #define THREADPOOL_H
 
+#include "../channels/mpmc.h"
 #include <pthread.h>
 
 void *__set_worker(void *arg);
@@ -32,9 +33,20 @@ typedef struct Job_t {
   void *arg;
 } __Job__;
 
-typedef struct Worker_t Worker;
+typedef struct Worker_t {
+  ReceiverMpmc *receiver;
+  SenderMpmc *sender;
+  ChannelMpmc *chan_ref;
+} Worker;
 
-typedef struct ThreadPool_t ThreadPool;
+typedef struct ThreadPool_t {
+  pthread_t *workers;
+  size_t num_workers;
+
+  ChannelMpmc *channel;
+  SenderMpmc *dispatcher;
+
+} ThreadPool;
 
 ThreadPool *threadpool_init(size_t num_threads);
 void threadpool_execute(ThreadPool *threadpool, __job __func, void *arg);
