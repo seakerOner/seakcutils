@@ -65,7 +65,7 @@ int arena_add(Arena *arena, const void *val) {
 };
 
 /* Will return NULL if max capacity is reached and doesn't resize */
-uint8_t *arena_alloc(Arena *arena) {
+void *arena_alloc(Arena *arena) {
   if (!arena)
     return NULL;
 

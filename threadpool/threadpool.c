@@ -26,6 +26,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static void *__set_worker(void *arg);
+
 ThreadPool *threadpool_init(size_t num_threads) {
   ThreadPool *tp = malloc(sizeof(ThreadPool));
 
@@ -67,7 +69,7 @@ void threadpool_shutdown(ThreadPool *threadpool) {
   free(threadpool);
 };
 
-void *__set_worker(void *arg) {
+static void *__set_worker(void *arg) {
   Worker *worker = (Worker *)arg;
   __Job__ job;
   while (1) {

@@ -19,37 +19,37 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#ifndef THREADPOOL_H
-#define THREADPOOL_H
+#ifndef R_ARENA_H
+#define R_ARENA_H
 
-#include "../channels/mpmc.h"
-#include <pthread.h>
+#include <stddef.h>
+#include <stdint.h>
 
-typedef void *(*__job)(void *);
+typedef struct {
+  uint8_t *data;
+  size_t epoch;
+} Region;
 
-typedef struct Job_t {
-  __job job;
-  void *arg;
-} __Job__;
+typedef struct {
+  size_t elem_size;
+  size_t rg_capacity;
 
-typedef struct Worker_t {
-  ReceiverMpmc *receiver;
-  SenderMpmc *sender;
-  ChannelMpmc *chan_ref;
-} Worker;
+  _Atomic size_t rgs_in_use;
+  _Atomic size_t count;
 
-typedef struct ThreadPool_t {
-  pthread_t *workers;
-  size_t num_workers;
+  size_t max_rgs;
+  _Atomic size_t current_epoch;
+  Region **regions_handler;
+} RegionArena;
 
-  ChannelMpmc *channel;
-  SenderMpmc *dispatcher;
+RegionArena r_arena_create(const size_t elem_size, const size_t region_capacity,
+                           const size_t max_regions);
 
-} ThreadPool;
-
-ThreadPool *threadpool_init(size_t num_threads);
-void threadpool_execute(ThreadPool *threadpool, __job __func, void *arg);
-
-void threadpool_shutdown(ThreadPool *threadpool);
+int r_arena_add(RegionArena *arena, const void *val);
+void *r_arena_alloc(RegionArena *arena);
+const void *r_arena_get(RegionArena *arena, size_t i);
+const void *r_arena_get_last(RegionArena *arena);
+void r_arena_free(RegionArena *arena);
+void r_arena_reset(RegionArena *arena);
 
 #endif

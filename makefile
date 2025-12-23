@@ -44,6 +44,10 @@ mpsc.o: $(CHANNELS)mpsc.c $(CHANNELS)mpsc.h
 mpmc.o: $(CHANNELS)mpmc.c $(CHANNELS)mpmc.h
 	$(CC) $(FLAGS) -c $(CHANNELS)mpmc.c -o $(BUILD)mpmc.o
 
+# Build Region Arena
+arena.o: $(ARENAS)r_arena.c $(ARENAS)r_arena.h
+	$(CC) $(FLAGS) -c $(ARENAS)r_arena.c -o $(BUILD)r_arena.o
+
 # Build Generic Arena
 arena.o: $(ARENAS)arena.c $(ARENAS)arena.h
 	$(CC) $(FLAGS) -c $(ARENAS)arena.c -o $(BUILD)arena.o

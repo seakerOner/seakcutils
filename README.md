@@ -77,15 +77,15 @@ Design goals:
 
 A **dependency-aware job scheduling** system built on top of the thread pool.
 
-> **Job System Limitation**
+> **Job System Status**
 >
-> The current Job System uses a fixed-size arena (4096 jobs).
-> When the arena reaches capacity, it is reset and any pending or scheduled jobs
-> become invalid.
+> The Job System currently relies on arena-based allocation for job handles.
+> A low-level, epoch-based Region Arena has been implemented to support
+> stable handles and reuse across execution phases.
 >
-> A region-based arena is planned to provide stable job handles, reuse, and
-> unbounded job creation. Until then, this job system should be considered
-> experimental and not suitable for production workloads.
+> Full integration of the Region Arena into the Job System is still in progress.
+> Until this integration is complete, the Job System should be considered
+> **experimental** and not yet suitable for production workloads.
 
 - Key features:
     - Job continuations: schedule dependent jobs automatically when prerequisites complete
@@ -105,17 +105,32 @@ A **dependency-aware job scheduling** system built on top of the thread pool.
 ### Arenas (`arenas/`)
 
 Arena-style memory allocators for fast, predictable allocation patterns.
-- String Arena: stores null-terminated strings contiguously, indexed by offsets
-- Generic Arena: stores fixed-size elements of any type, supports dynamic growth or fixed capacity
+
+Available arenas:
+
+- **String Arena**
+  - Stores null-terminated strings contiguously
+  - Indexed by offsets
+  - No per-string free
+
+- **Generic Arena**
+  - Stores fixed-size elements of any type
+  - Supports dynamic growth or fixed capacity
+  - Single-threaded, cache-friendly
+
+- **Region Arena (Epoch-based, Concurrent, Low-level)**
+  - Fixed-size regions with lazy allocation
+  - Thread-safe allocation using C11 atomics
+  - Explicit reuse via epoch-based resets
+  - No per-element free, no ownership tracking
+  - Designed for high-throughput, phase-based systems (e.g. job systems)
 
 Key characteristics:
 - Linear allocation with amortized O(1) insertion
 - Explicit lifetime management (reset, free)
-- Contiguous memory storage improves cache locality
-- Minimal API, no hidden allocations or per-element frees
 
-See `arenas/README.md` for detailed API documentation.
-
+See `arenas/README.md` for detailed API documentation, guarantees, and usage rules.
+ 
 ---
 
 ## Intended Use
