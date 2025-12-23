@@ -75,29 +75,55 @@ Design goals:
 ---
 ### Job System (`job_system/`)
 
-A **dependency-aware job scheduling** system built on top of the thread pool.
+A **dependency-aware job scheduling system** built on top of the thread pool, designed for engine-level workloads and explicit execution phases.
+
+This system focuses on predictable performance and low-overhead dependency management, rather than fine-grained task scheduling or future-based execution.
 
 > **Job System Status**
 >
-> The Job System currently relies on arena-based allocation for job handles.
-> A low-level, epoch-based Region Arena has been implemented to support
-> stable handles and reuse across execution phases.
+>The Job System is functional and stable under heavy workloads.
+>It uses a region-based arena for job handle allocation, enabling
+>fast allocation and explicit reuse across execution phases.
 >
-> Full integration of the Region Arena into the Job System is still in progress.
-> Until this integration is complete, the Job System should be considered
-> **experimental** and not yet suitable for production workloads.
+>APIs and internal behavior may still evolve as the system matures.
 
-- Key features:
-    - Job continuations: schedule dependent jobs automatically when prerequisites complete
-    - Parallel execution: multiple worker threads execute independent jobs concurrently
-    - Deterministic single-threaded execution: job order is guaranteed when using 1 worker thread
-    - Lock-free and low-overhead: leverages MPMC channels and atomic counters
-    - No dynamic allocation during execution: job handles allocated in a pre-allocated arena
-- Design notes:
-    - Jobs are fire-and-forget, with no returned result
-    - Continuation dependencies are enforced
-    - Multi-threaded execution may run independent jobs in any order, while still respecting dependencies
-    - Users can combine jobs with existing channels for complex pipelines
+- **Key Features**
+    - **Job continuations (dependencies)**
+        - Jobs can declare explicit dependencies via `job_then`
+        - Continuations are scheduled automatically once prerequisites complete
+    - **Parallel execution**
+        - Independent jobs execute concurrently across worker threads
+        - Dependency chains are enforced deterministically
+    - **Deterministic behavior**
+        - With a single worker thread, job execution order is guaranteed
+    - **Low-level and lock-free**
+        - Built on MPMC channels and C11 atomics
+        - No mutexes or condition variables
+    - Arena-based allocation
+        - Job handles are allocated from a pre-allocated region arena
+
+- **Design Notes**
+    - Jobs are **fire-and-forget**
+        - No returned values, futures, or promises
+        - Synchronization is expressed only via dependencies
+    - Dependency chains (`job_then`) are **serialized locally by design**
+        - Only jobs within the same dependency chain are sequential
+        - Independent jobs remain fully parallel
+    - Job scheduling and execution are CPU-bound
+        - Busy-waiting is used internally
+        - Best suited for compute-heavy workloads
+    - The system is designed for **phase-based execution**
+        - Typical usage includes frame updates, task graphs, or batch processing
+    - Large numbers of jobs are supported
+        - Theoretical capacity: ~4.2 million jobs
+        - Practical tested limit: ~1 million jobs spawned at once
+        - Actual limits depend on channel capacity and workload shape
+
+**What This System Is Not**
+- Not a fine-grained task runtime
+- Not a future/promise-based executor
+- Not designed for blocking or I/O-bound workloads
+- Not intended to replace higher-level async frameworks
 
     See `job_system/README.md` for full API details, usage examples, and guarantees.
 

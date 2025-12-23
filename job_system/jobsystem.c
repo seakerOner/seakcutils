@@ -20,7 +20,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "jobsystem.h"
-#include "../arenas/arena.h"
+#include "../arenas/r_arena.h"
 #include "../channels/mpmc.h"
 #include "../threadpool/threadpool.h"
 #include <assert.h>
@@ -34,11 +34,15 @@
 Scheduler *g_scheduler = NULL;
 
 static void *__set_worker_scheduler(void *arg);
+static void _job_scheduler_healthcheck(void);
+static void threadpool_schedule(SenderMpmc *sender, JobHandle *scheduled_job);
 
 typedef struct Scheduler_t {
   ThreadPool *threadpool;
-  Arena job_arena;
-  _Atomic size_t counter;
+  _Atomic uint8_t accepting_jobs; // 0 -> accepting or 1 -> not accepting
+  _Atomic size_t active_jobs;
+  _Atomic size_t jobs_completed_epoch;
+  RegionArena job_arena;
 } Scheduler;
 
 typedef struct JobHandle_t {
@@ -51,21 +55,36 @@ typedef struct JobHandle_t {
 
 void job_scheduler_spawn(ThreadPool *threadpool) {
   Scheduler *sche = malloc(sizeof(Scheduler));
-  sche->job_arena = arena_create(sizeof(JobHandle), 4096, FIXED);
+  sche->job_arena =
+      r_arena_create(sizeof(JobHandle), JOB_SCHEDULER_REGION_CAPACITY,
+                     JOB_SCHEDULER_MAX_REGIONS);
   sche->threadpool = threadpool;
-  sche->counter = 0;
+  atomic_init(&sche->accepting_jobs, 1);
+  atomic_init(&sche->active_jobs, 0);
+  atomic_init(&sche->jobs_completed_epoch, 0);
   g_scheduler = sche;
 };
 
 void job_scheduler_shutdown(void) {
   threadpool_shutdown(g_scheduler->threadpool);
-  arena_free(&g_scheduler->job_arena);
+  r_arena_free(&g_scheduler->job_arena);
 };
 
 JobHandle *job_spawn(__job_handle fn, void *ctx) {
-  JobHandle *job = (JobHandle *)arena_alloc(&g_scheduler->job_arena);
-  if (!job)
+  // small contention, rare to be needed as scheduler temporarily doesnt accept
+  // jobs only when it needs to reset the inner arena
+  while (atomic_load_explicit(&g_scheduler->accepting_jobs,
+                              memory_order_acquire) != 1) {
+    cpu_relax();
+  }
+  atomic_fetch_add_explicit(&g_scheduler->active_jobs, 1, memory_order_acq_rel);
+
+  JobHandle *job = (JobHandle *)r_arena_alloc(&g_scheduler->job_arena);
+  if (!job) {
+    atomic_fetch_sub_explicit(&g_scheduler->active_jobs, 1,
+                              memory_order_acq_rel);
     return NULL;
+  }
   job->Job = fn;
   job->ctx = ctx;
   atomic_init(&job->unfinished, 1);
@@ -89,7 +108,8 @@ ThreadPool *threadpool_init_for_scheduler(size_t num_threads) {
   tp->workers = malloc(num_threads * sizeof(pthread_t));
   tp->num_workers = num_threads;
 
-  tp->channel = channel_create_mpmc(num_threads * 4, sizeof(JobHandle *));
+  tp->channel =
+      channel_create_mpmc(JOB_SCHEDULER_MAX_JOBS, sizeof(JobHandle *));
   tp->dispatcher = mpmc_get_sender(tp->channel);
 
   for (size_t i = 0; i < num_threads; i++) {
@@ -111,13 +131,23 @@ static void *__set_worker_scheduler(void *arg) {
     if (mpmc_recv(worker->receiver, &job) == CHANNEL_OK) {
       assert(job != NULL);
       assert(job->Job != NULL);
+      // --> run job
       job->Job(job->ctx);
+
+      atomic_fetch_add_explicit(&g_scheduler->jobs_completed_epoch, 1,
+                                memory_order_release);
+
       if (atomic_fetch_sub_explicit(&job->unfinished, 1,
-                                    memory_order_acq_rel) == 1 &&
-          job->continuation) {
+                                    memory_order_acq_rel) == 1) {
+
         if (job->continuation) {
           threadpool_schedule(worker->sender, job->continuation);
+        } else {
+          _job_scheduler_healthcheck();
         }
+
+        atomic_fetch_sub_explicit(&g_scheduler->active_jobs, 1,
+                                  memory_order_acq_rel);
       }
     } else if (mpmc_is_closed(worker->chan_ref) == CLOSED) {
       break;
@@ -132,6 +162,30 @@ static void *__set_worker_scheduler(void *arg) {
   return NULL;
 };
 
-void threadpool_schedule(SenderMpmc *sender, JobHandle *scheduled_job) {
+static void threadpool_schedule(SenderMpmc *sender, JobHandle *scheduled_job) {
   mpmc_send(sender, &scheduled_job);
 };
+
+static void _job_scheduler_reset(void);
+
+static void _job_scheduler_healthcheck(void) {
+  if (atomic_load_explicit(&g_scheduler->jobs_completed_epoch,
+                           memory_order_acquire) >
+      JOB_SCHEDULER_MAX_JOBS - 20) {
+    _job_scheduler_reset();
+  }
+}
+
+static void _job_scheduler_reset(void) {
+  atomic_store_explicit(&g_scheduler->accepting_jobs, 0, memory_order_release);
+
+  while (atomic_load_explicit(&g_scheduler->active_jobs,
+                              memory_order_acquire) != 0) {
+    cpu_relax();
+  }
+  r_arena_reset(&g_scheduler->job_arena);
+  atomic_store_explicit(&g_scheduler->jobs_completed_epoch, 0,
+                        memory_order_release);
+
+  atomic_store_explicit(&g_scheduler->accepting_jobs, 1, memory_order_release);
+}

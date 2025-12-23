@@ -25,10 +25,14 @@
 #include "../threadpool/threadpool.h"
 #include <stddef.h>
 
+#define JOB_SCHEDULER_REGION_CAPACITY 4096
+#define JOB_SCHEDULER_MAX_REGIONS 1024
+#define JOB_SCHEDULER_MAX_JOBS                                                 \
+  (JOB_SCHEDULER_REGION_CAPACITY * JOB_SCHEDULER_MAX_REGIONS)
+
 ThreadPool *threadpool_init_for_scheduler(size_t num_threads);
 
-typedef struct JobHandle_t JobHandle ;
-void threadpool_schedule(SenderMpmc *sender, JobHandle *job_handle);
+typedef struct JobHandle_t JobHandle;
 
 typedef struct Scheduler_t Scheduler;
 extern Scheduler *g_scheduler;

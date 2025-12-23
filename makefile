@@ -14,7 +14,7 @@ JOBSYSTEM = ./job_system/
 CHANNELS = ./channels/
 ARENAS = ./arenas/
 
-test: main.o jobsystem.o threadpool.o mpmc.o arena.o
+test: main.o jobsystem.o threadpool.o mpmc.o r_arena.o
 	$(CC) $(BUILD)*.o -o $(BUILD)/test
 
 main.o: main.c $(THREADPOOL)threadpool.h
@@ -45,7 +45,7 @@ mpmc.o: $(CHANNELS)mpmc.c $(CHANNELS)mpmc.h
 	$(CC) $(FLAGS) -c $(CHANNELS)mpmc.c -o $(BUILD)mpmc.o
 
 # Build Region Arena
-arena.o: $(ARENAS)r_arena.c $(ARENAS)r_arena.h
+r_arena.o: $(ARENAS)r_arena.c $(ARENAS)r_arena.h
 	$(CC) $(FLAGS) -c $(ARENAS)r_arena.c -o $(BUILD)r_arena.o
 
 # Build Generic Arena
@@ -78,6 +78,6 @@ bench_job_system:
 	gcc -O3 -march=native -pthread ./benchmarks/job_system/job_sys_parallel_bench.c \
         $(JOBSYSTEM)jobsystem.c \
 	$(CHANNELS)mpmc.c \
-	$(ARENAS)arena.c \
+	$(ARENAS)r_arena.c \
 	$(THREADPOOL)threadpool.c \
         -o $(BUILD)bench_job_system

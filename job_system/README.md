@@ -1,6 +1,14 @@
 # Job System
 
-A lightweight dependency-aware job system built on top of a lock-free thread pool and multi-producer/multi-consumer channels. Designed for high-performance task scheduling in C with minimal overhead.
+The Job System provides a lightweight, low-level abstraction for executing dependent jobs across a thread pool. It is designed for predictable performance, explicit memory ownership, and minimal synchronization overhead.
+
+---
+## Overview
+
+- Jobs are represented by `JobHandle`
+- Jobs can be chained using continuations (`job_then`)
+- Execution is backed by a thread pool using an MPMC channel
+- Memory is managed via a multi-region arena
 
 --- 
 ## Features
@@ -34,15 +42,15 @@ A lightweight dependency-aware job system built on top of a lock-free thread poo
 
 ```c
 
-typedef void (*__job_handle)(void *);
-
-typedef struct JobHandle_t JobHandle;
-typedef struct Scheduler_t Scheduler;
-
 extern Scheduler *g_scheduler;
 
 ThreadPool *threadpool_init_for_scheduler(size_t num_threads);
-void threadpool_schedule(SenderMpmc *sender, JobHandle *job_handle);
+
+typedef struct JobHandle_t JobHandle;
+
+typedef struct Scheduler_t Scheduler;
+
+typedef void (*__job_handle)(void *);
 
 void job_scheduler_spawn(ThreadPool *threadpool);
 void job_scheduler_shutdown(void);
@@ -52,6 +60,65 @@ void job_then(JobHandle *first, JobHandle *then);
 void job_wait(JobHandle *job);
 
 ```
+
+- `job_spawn` creates a new job handle
+- `job_then` creates a dependency between jobs
+- `job_wait` schedules the job and waits for its completion
+- `job_scheduler_spawn` initializes the scheduler
+- `job_scheduler_shutdown` shuts everything down and frees memory
+
+---
+## Job Capacity
+
+The Job System uses a region-based arena:
+
+```c
+#define JOB_SCHEDULER_REGION_CAPACITY 4096
+#define JOB_SCHEDULER_MAX_REGIONS 1024
+#define JOB_SCHEDULER_MAX_JOBS (JOB_SCHEDULER_REGION_CAPACITY * JOB_SCHEDULER_MAX_REGIONS)
+```
+
+- Theoretical maximum: ~4.2 million jobs
+- Practical tested limit: ~1 million jobs spawned at once
+- The limit is affected by:
+    - Channel capacity
+    - Available memory
+    - Job dependency patterns
+
+The arena is reset automatically once the completed job counter approaches the maximum capacity, ensuring stable reuse of memory.
+
+---
+## Channel Sizing
+
+- Each job increments the scheduler’s `active_jobs` counter on spawn
+- `active_jobs` is decremented **only after the job finishes and no continuation remains**
+- If a job has a continuation, the next job is scheduled automatically
+- The arena is reset only when:
+    - No jobs are active
+    - The completed job counter reaches a safe threshold (**MAX_JOBS - 20**)
+
+---
+## Performance Notes
+
+- Job execution is fully parallel across worker threads
+- Dependency chains (`job_then`) are serialized locally by design, while independent jobs remain fully parallel (`job_wait`)
+- Job throughput depends heavily on job granularity and continuation depth
+- Benchmarks vary significantly based on workload and are intentionally not provided as absolute numbers
+
+---
+## Recommendations
+
+Prefer batching jobs instead of spawning millions at once
+Avoid extremely deep continuation chains
+Adjust arena and channel sizes for your workload
+This system is intended for engine-level usage, not fine-grained task scheduling
+
+---
+
+>Experimental Status
+>
+>This job system is stable for heavy workloads but still evolving. APIs and internal behavior may change.
+
 ---
 ## Usage Example
 
@@ -100,16 +167,3 @@ int main() {
 - Users are responsible for ensuring proper context data lifetime.
 - Submitting jobs from multiple threads without proper synchronization is undefined behavior.
 - No built-in futures or promises; dependencies are handled only via job_then.
-
-
-> **Job System Limitation**
->
-> The current Job System uses a fixed-size arena (4096 jobs).
-> When the arena reaches capacity, it is reset and any pending or scheduled jobs
-> become invalid.
->
-> A region-based arena is planned to provide stable job handles, reuse, and
-> unbounded job creation. Until then, this job system should be considered
-> experimental and not suitable for production workloads.
-
-
