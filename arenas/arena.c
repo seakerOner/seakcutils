@@ -49,7 +49,7 @@ int arena_add(Arena *arena, const void *val) {
       return 2;
 
     size_t new_cap = arena->capacity * 1.5;
-    void *tmp = realloc((char *)arena->data, new_cap * arena->elem_size);
+    void *tmp = realloc((uint8_t *)arena->data, new_cap * arena->elem_size);
     if (!tmp)
       return 3;
 
@@ -59,13 +59,13 @@ int arena_add(Arena *arena, const void *val) {
   size_t count =
       atomic_fetch_add_explicit(&arena->count, 1, memory_order_acq_rel);
 
-  memcpy((char *)arena->data + (count * arena->elem_size), val,
+  memcpy((uint8_t *)arena->data + (count * arena->elem_size), val,
          arena->elem_size);
   return 0;
 };
 
 /* Will return NULL if max capacity is reached and doesn't resize */
-char *arena_alloc(Arena *arena) {
+uint8_t *arena_alloc(Arena *arena) {
   if (!arena)
     return NULL;
 
@@ -74,18 +74,18 @@ char *arena_alloc(Arena *arena) {
 
   if (index >= arena->capacity) {
     atomic_fetch_sub_explicit(&arena->count, 1, memory_order_acq_rel);
-// temporary for job system
+    // temporary for job system
 #ifdef DEBUG
     fprintf(stderr, "[job_system] arena capacity exceeded — resetting (jobs "
                     "may be lost)\n");
 #endif
     arena_reset(arena);
-    char *ptr = (char *)arena->data;
+    uint8_t *ptr = (uint8_t *)arena->data;
     memset(ptr, 0, arena->elem_size);
     return ptr;
   }
 
-  char *ptr = (char *)arena->data + index * arena->elem_size;
+  uint8_t *ptr = (uint8_t *)arena->data + index * arena->elem_size;
   memset(ptr, 0, arena->elem_size);
   return ptr;
 };
@@ -94,14 +94,14 @@ const void *arena_get(Arena *arena, size_t i) {
   if (!arena || i >= arena->count || arena->count == 0) {
     return NULL;
   }
-  return (char *)arena->data + (i * arena->elem_size);
+  return (uint8_t *)arena->data + (i * arena->elem_size);
 };
 
 const void *arena_get_last(Arena *arena) {
   if (!arena || arena->count == 0) {
     return NULL;
   }
-  return (char *)arena->data + ((arena->count - 1) * arena->elem_size);
+  return (uint8_t *)arena->data + ((arena->count - 1) * arena->elem_size);
 };
 
 int arena_pop(Arena *arena, void *out) {
@@ -112,7 +112,7 @@ int arena_pop(Arena *arena, void *out) {
       atomic_fetch_sub_explicit(&arena->count, 1, memory_order_acq_rel);
 
   size_t index = old - 1;
-  memcpy(out, (char *)arena->data + (index * arena->elem_size),
+  memcpy(out, (uint8_t *)arena->data + (index * arena->elem_size),
          arena->elem_size);
   return 1;
 };
