@@ -142,7 +142,7 @@ void r_arena_free(RegionArena *arena) {
 
   size_t num_regions =
       atomic_load_explicit(&arena->rgs_in_use, memory_order_acquire);
-  for (int z = 0; z < num_regions; z++) {
+  for (size_t z = 0; z < num_regions; z++) {
     free(arena->regions_handler[z]->data);
     free(arena->regions_handler[z]);
   }
