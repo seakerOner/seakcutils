@@ -24,6 +24,7 @@
 #include "../channels/mpmc.h"
 #include "../threadpool/threadpool.h"
 #include <assert.h>
+#include <stdarg.h>
 #include <stdatomic.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -92,11 +93,57 @@ JobHandle *job_spawn(__job_handle fn, void *ctx) {
   return job;
 };
 
+/* this will schedule `first` and `then` when `first` finishes */
 void job_then(JobHandle *first, JobHandle *then) {
   first->continuation = then;
   atomic_fetch_add_explicit(&then->unfinished, 1, memory_order_release);
   threadpool_schedule(g_scheduler->threadpool->dispatcher, first);
 };
+
+void job_chain(size_t num_jobs, ...) {
+  va_list args;
+  JobHandle *job_to_schedule;
+
+  uint8_t first = 1;
+  JobHandle *prev_job;
+  va_start(args, num_jobs);
+  for (size_t x = 0; x < num_jobs; x++) {
+    JobHandle *job = va_arg(args, JobHandle *);
+    if (first == 1) {
+      job_to_schedule = job;
+      prev_job = job;
+      first = 0;
+    } else {
+      prev_job->continuation = job;
+      atomic_fetch_add_explicit(&job->unfinished, 1, memory_order_release);
+      prev_job = job;
+    }
+  }
+  va_end(args);
+
+  threadpool_schedule(g_scheduler->threadpool->dispatcher, job_to_schedule);
+}
+
+void job_chain_arr(size_t num_jobs, JobHandle **job_list) {
+  JobHandle *job_to_schedule;
+
+  uint8_t first = 1;
+  JobHandle *prev_job;
+  for (size_t x = 0; x < num_jobs; x++) {
+    JobHandle *job = job_list[x];
+    if (first == 1) {
+      job_to_schedule = job;
+      prev_job = job;
+      first = 0;
+    } else {
+      prev_job->continuation = job;
+      atomic_fetch_add_explicit(&job->unfinished, 1, memory_order_release);
+      prev_job = job;
+    }
+  }
+
+  threadpool_schedule(g_scheduler->threadpool->dispatcher, job_to_schedule);
+}
 
 void job_wait(JobHandle *job) {
   threadpool_schedule(g_scheduler->threadpool->dispatcher, job);
@@ -131,16 +178,17 @@ static void *__set_worker_scheduler(void *arg) {
     if (mpmc_recv(worker->receiver, &job) == CHANNEL_OK) {
       assert(job != NULL);
       assert(job->Job != NULL);
-      // --> run job
-      job->Job(job->ctx);
 
-      atomic_fetch_add_explicit(&g_scheduler->jobs_completed_epoch, 1,
-                                memory_order_release);
-
-      if (atomic_fetch_sub_explicit(&job->unfinished, 1,
-                                    memory_order_acq_rel) == 1) {
+      if (atomic_load_explicit(&job->unfinished, memory_order_acquire) == 1) {
+        // --> run job
+        job->Job(job->ctx);
+        atomic_fetch_add_explicit(&g_scheduler->jobs_completed_epoch, 1,
+                                  memory_order_release);
+        atomic_fetch_sub_explicit(&job->unfinished, 1, memory_order_release);
 
         if (job->continuation) {
+          atomic_fetch_sub_explicit(&job->continuation->unfinished, 1,
+                                    memory_order_release);
           threadpool_schedule(worker->sender, job->continuation);
         } else {
           _job_scheduler_healthcheck();
@@ -163,6 +211,10 @@ static void *__set_worker_scheduler(void *arg) {
 };
 
 static void threadpool_schedule(SenderMpmc *sender, JobHandle *scheduled_job) {
+  if (atomic_load_explicit(&scheduled_job->unfinished, memory_order_acquire) ==
+      0) {
+    return;
+  }
   mpmc_send(sender, &scheduled_job);
 };
 

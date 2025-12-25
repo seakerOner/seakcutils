@@ -43,6 +43,8 @@ void job_scheduler_spawn(ThreadPool *threadpool);
 void job_scheduler_shutdown(void);
 
 JobHandle *job_spawn(__job_handle fn, void *ctx);
+void job_chain(size_t num_jobs, ...);
+void job_chain_arr(size_t num_jobs, JobHandle **job_list);
 void job_then(JobHandle *first, JobHandle *then);
 void job_wait(JobHandle *job);
 

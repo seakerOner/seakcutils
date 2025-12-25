@@ -128,6 +128,34 @@ This system focuses on predictable performance and low-overhead dependency manag
     See `job_system/README.md` for full API details, usage examples, and guarantees.
 
 ---
+### Wait Group (`wait_group/`)
+
+A **Wait Group** is a minimal synchronization primitive used to wait for a group
+of independent operations to complete.
+
+It provides an explicit phase barrier without spawning threads, allocating memory,
+or interacting with schedulers.
+
+The Wait Group is intentionally small and designed to **compose with the Job System**, but it's Scheduler-Agnostic.
+
+- **Key Features**
+    - Atomic counter-based synchronization
+    - No memory allocation
+    - No hidden threads
+    - Lock-free and deterministic
+    - Suitable for phase-based execution
+
+- **Relationship with the Job System**
+    - The Job System handles execution and dependencies
+    - The Wait Group provides explicit synchronization points
+    - Fan-out and phase barriers are built using Wait Groups
+    - No futures, callbacks, or implicit joins
+
+This separation keeps both systems small, predictable, and easy to reason about.
+
+See `wait_group/README.md` for detailed usage examples and integration patterns.
+
+---
 ### Arenas (`arenas/`)
 
 Arena-style memory allocators for fast, predictable allocation patterns.
