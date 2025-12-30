@@ -22,15 +22,8 @@ points without using threads.
 ```c
 void g_anchor_init();   // Initialize the runtime
 void g_anchor_free();   // Free all task stacks and resources
-```
 
-- Task Managment
-```c
 void task_run(void(*func)(void *), void *ctx);  
-```
-Spawn a new cooperative task.
-func is called with ctx as its argument.
-```c
 void wait_for_tasks();
 ```
 

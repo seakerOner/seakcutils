@@ -169,7 +169,7 @@ This module serves as a foundation for async-like workflows and higher-level pri
     - Lightweight context management with independent stacks.
     - Wait for all tasks to complete via wait_for_tasks().
 
-See `async/README.md` for examples and more information.
+See `yield/README.md` for examples and more information.
 
 ---
 ### Arenas (`arenas/`)
