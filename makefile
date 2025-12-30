@@ -11,13 +11,15 @@ endif
 BUILD = ./build/
 THREADPOOL = ./threadpool/
 JOBSYSTEM = ./job_system/
+WG = ./wait_group/
+ASYNC= ./async/
 CHANNELS = ./channels/
 ARENAS = ./arenas/
 
-test: main.o jobsystem.o threadpool.o mpmc.o r_arena.o
+test: main.o jobsystem.o threadpool.o mpmc.o r_arena.o yield.o
 	$(CC) $(BUILD)*.o -o $(BUILD)/test
 
-main.o: main.c $(THREADPOOL)threadpool.h
+main.o: main.c 
 	$(CC) $(FLAGS) -c main.c -o $(BUILD)main.o
 
 # Build threadpool 
@@ -27,6 +29,14 @@ threadpool.o: $(THREADPOOL)threadpool.h $(THREADPOOL)threadpool.c
 # Build jobSystem
 jobsystem.o: $(JOBSYSTEM)jobsystem.h $(JOBSYSTEM)jobsystem.c 
 	$(CC) $(FLAGS) -c $(JOBSYSTEM)jobsystem.c -o $(BUILD)jobsystem.o
+
+# Build Async yield
+yield.o: $(ASYNC)yield.c $(ASYNC)yield.h
+	$(CC) $(FLAGS) -c $(ASYNC)yield.c -o $(BUILD)yield.o
+
+# Build WaitGroup
+waitg.o: $(WG)waitg.h $(WG)waitg.c 
+	$(CC) $(FLAGS) -c $(WG)waitg.c -o $(BUILD)waitg.o
 
 # Build SPSC Channel
 spsc.o: $(CHANNELS)spsc.c $(CHANNELS)spsc.h

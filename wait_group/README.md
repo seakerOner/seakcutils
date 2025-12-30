@@ -202,7 +202,6 @@ void phase2_job(void *ctx) {
     ctx->r_ctx = r_ctx;
     jobs[x] = job_spawn(phase2_task_inner_job, ctx);
   }
-  const int last_job = num_inner_task_jobs;
 
   job_chain_arr(num_inner_task_jobs, jobs);
 

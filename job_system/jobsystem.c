@@ -69,6 +69,7 @@ void job_scheduler_spawn(ThreadPool *threadpool) {
 void job_scheduler_shutdown(void) {
   threadpool_shutdown(g_scheduler->threadpool);
   r_arena_free(&g_scheduler->job_arena);
+  free(g_scheduler);
 };
 
 JobHandle *job_spawn(__job_handle fn, void *ctx) {

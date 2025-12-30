@@ -156,6 +156,22 @@ This separation keeps both systems small, predictable, and easy to reason about.
 See `wait_group/README.md` for detailed usage examples and integration patterns.
 
 ---
+### Yield / Cooperative Tasks (`yield/`)
+
+> Note: This module only supports x86-64 processors.
+
+A minimal **cooperative multitasking runtime** for C, enabling functions to **pause and resume** at defined points without threads. 
+This module serves as a foundation for async-like workflows and higher-level primitives such as futures or coroutines.
+
+- Key Features
+    - Run multiple tasks in a round-robin fashion.
+    - Explicit task yielding with yield().
+    - Lightweight context management with independent stacks.
+    - Wait for all tasks to complete via wait_for_tasks().
+
+See `async/README.md` for examples and more information.
+
+---
 ### Arenas (`arenas/`)
 
 Arena-style memory allocators for fast, predictable allocation patterns.
