@@ -202,7 +202,27 @@ Key characteristics:
 See `arenas/README.md` for detailed API documentation, guarantees, and usage rules.
  
 ---
+### Strings (`strings/`)
 
+Low-level **ASCII-only** string utilities focused on explicit, byte-level manipulation.
+
+This module intentionally avoids Unicode normalization, and libc
+character classification helpers. All operations are deterministic and operate
+directly on raw bytes.
+
+- **Key characteristics**:
+    - ASCII-only by design
+    - Bit-level character inspection
+    - No hidden allocations
+    - No locale or global state
+    - Predictable and explicit behavior
+
+This module is intended for systems code, tooling, parsers, and pipelines where
+ASCII is sufficient and Unicode would introduce unnecessary complexity.
+
+See `strings/README.md` for design rationale and usage details.
+
+---
 ## Intended Use
 
 This repository is intended to be:
