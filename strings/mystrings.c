@@ -2,15 +2,15 @@
 #include "mystrings.h"
 #include <stdio.h>
 
-void ascii2bits(ascii *string, uint8_t bits[8]) {
+void ascii2bits(ascii c, uint8_t bits[8]) {
   for (int x = 0; x < 8; x += 1) {
-    bits[x] = (*string >> x) & 1;
+    bits[x] = (c >> x) & 1;
   }
 }
 // prints ascii character in hex and binary format
 void print_ascii_stats(ascii letter) {
   ascii a_bits[8];
-  ascii2bits(&letter, a_bits);
+  ascii2bits(letter, a_bits);
 
   printf("CHARACTER: '%c' | HEX: %x | BITS: ", letter, letter);
   SEAK_PRINT_BITS(8, a_bits);

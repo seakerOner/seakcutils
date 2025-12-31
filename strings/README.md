@@ -41,7 +41,7 @@ This is intentional.
 
 typedef uint8_t ascii;
 
-void ascii2bits(ascii *string, uint8_t bits[8]);
+void ascii2bits(ascii c, uint8_t bits[8]);
 
 // prints ascii character in hex and binary format
 void print_ascii_stats(ascii letter);
