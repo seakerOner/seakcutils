@@ -12,11 +12,12 @@ BUILD = ./build/
 THREADPOOL = ./threadpool/
 JOBSYSTEM = ./job_system/
 WG = ./wait_group/
-ASYNC= ./async/
+YIELD = ./yield/
 CHANNELS = ./channels/
 ARENAS = ./arenas/
+DATA_STRUCTURES = ./data_structures/
 
-test: main.o jobsystem.o threadpool.o mpmc.o r_arena.o yield.o
+test: main.o jobsystem.o threadpool.o mpmc.o r_arena.o yield.o deque.o
 	$(CC) $(BUILD)*.o -o $(BUILD)/test
 
 main.o: main.c 
@@ -31,8 +32,8 @@ jobsystem.o: $(JOBSYSTEM)jobsystem.h $(JOBSYSTEM)jobsystem.c
 	$(CC) $(FLAGS) -c $(JOBSYSTEM)jobsystem.c -o $(BUILD)jobsystem.o
 
 # Build Async yield
-yield.o: $(ASYNC)yield.c $(ASYNC)yield.h
-	$(CC) $(FLAGS) -c $(ASYNC)yield.c -o $(BUILD)yield.o
+yield.o: $(YIELD)yield.c $(YIELD)yield.h
+	$(CC) $(FLAGS) -c $(YIELD)yield.c -o $(BUILD)yield.o
 
 # Build WaitGroup
 waitg.o: $(WG)waitg.h $(WG)waitg.c 
@@ -65,6 +66,14 @@ arena.o: $(ARENAS)arena.c $(ARENAS)arena.h
 # Build String Arena
 s_arena.o: $(ARENAS)string_arena.c $(ARENAS)string_arena.h
 	$(CC) $(FLAGS) -c $(ARENAS)string_arena.c -o $(BUILD)string_arena.o
+
+# Build Stack Data Structure
+stack.o: $(DATA_STRUCTURES)stack.c $(DATA_STRUCTURES)stack.h
+	$(CC) $(FLAGS) -c $(DATA_STRUCTURES)stack.c -o $(BUILD)stack.o
+
+# Build Deque Data Structure
+deque.o: $(DATA_STRUCTURES)deque.c $(DATA_STRUCTURES)deque.h
+	$(CC) $(FLAGS) -c $(DATA_STRUCTURES)deque.c -o $(BUILD)deque.o
 
 clean:
 	rm -f $(BUILD)*

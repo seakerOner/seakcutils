@@ -20,7 +20,8 @@ The goal is not to reimplement the C standard library, but to provide **well-sco
 - **Composable primitives**: utilities are designed to work together
 - **Portable C**: relies on C11 where possible, avoids platform-specific tricks unless justified
 
-This library is primarily intended for **Linux-based systems programming**, but portability is considered whenever feasible.
+This library is primarily intended for **Linux-based systems programming**. (Windows portability is not a priority for me since
+I don't use it, if you want it ask me for it or do it yourself)
 
 ---
 
@@ -75,9 +76,11 @@ Design goals:
 ---
 ### Job System (`job_system/`)
 
-A **dependency-aware job scheduling system** built on top of the thread pool, designed for engine-level workloads and explicit execution phases.
+A **dependency-aware job scheduling system** built on top of the thread pool, designed for 
+engine-level workloads and explicit execution phases.
 
-This system focuses on predictable performance and low-overhead dependency management, rather than fine-grained task scheduling or future-based execution.
+This system focuses on predictable performance and low-overhead dependency management, 
+rather than fine-grained task scheduling or future-based execution.
 
 > **Job System Status**
 >
@@ -96,7 +99,7 @@ This system focuses on predictable performance and low-overhead dependency manag
         - Dependency chains are enforced deterministically
     - **Deterministic behavior**
         - With a single worker thread, job execution order is guaranteed
-    - **Low-level and lock-free**
+    - **lock-free**
         - Built on MPMC channels and C11 atomics
         - No mutexes or condition variables
     - Arena-based allocation
@@ -105,7 +108,6 @@ This system focuses on predictable performance and low-overhead dependency manag
 - **Design Notes**
     - Jobs are **fire-and-forget**
         - No returned values, futures, or promises
-        - Synchronization is expressed only via dependencies
     - Dependency chains (`job_then`) are **serialized locally by design**
         - Only jobs within the same dependency chain are sequential
         - Independent jobs remain fully parallel
@@ -165,9 +167,9 @@ This module serves as a foundation for async-like workflows and higher-level pri
 
 - Key Features
     - Run multiple tasks in a round-robin fashion.
-    - Explicit task yielding with yield().
+    - Explicit task yielding with `yield()`.
     - Lightweight context management with independent stacks.
-    - Wait for all tasks to complete via wait_for_tasks().
+    - Wait for all tasks to complete via `wait_for_tasks()`.
 
 See `yield/README.md` for examples and more information.
 
@@ -188,7 +190,7 @@ Available arenas:
   - Supports dynamic growth or fixed capacity
   - Single-threaded, cache-friendly
 
-- **Region Arena (Epoch-based, Concurrent, Low-level)**
+- **Region Arena (Epoch-based, Concurrent)**
   - Fixed-size regions with lazy allocation
   - Thread-safe allocation using C11 atomics
   - Explicit reuse via epoch-based resets
@@ -196,7 +198,7 @@ Available arenas:
   - Designed for high-throughput, phase-based systems (e.g. job systems)
 
 Key characteristics:
-- Linear allocation with amortized O(1) insertion
+- Linear allocation with O(1) insertion
 - Explicit lifetime management (reset, free)
 
 See `arenas/README.md` for detailed API documentation, guarantees, and usage rules.
@@ -204,11 +206,10 @@ See `arenas/README.md` for detailed API documentation, guarantees, and usage rul
 ---
 ### Strings (`strings/`)
 
-Low-level **ASCII-only** string utilities focused on explicit, byte-level manipulation.
+**ASCII-only** string utilities focused on explicit, byte-level manipulation.
 
-This module intentionally avoids Unicode normalization, and libc
-character classification helpers. All operations are deterministic and operate
-directly on raw bytes.
+This module avoids Unicode normalization and libc character classification 
+helpers. All operations are deterministic and operate directly on raw bytes.
 
 - **Key characteristics**:
     - ASCII-only by design
@@ -220,7 +221,7 @@ directly on raw bytes.
 This module is intended for systems code, tooling, parsers, and pipelines where
 ASCII is sufficient and Unicode would introduce unnecessary complexity.
 
-See `strings/README.md` for design rationale and usage details.
+See `strings/README.md` for design usage details.
 
 ---
 ## Intended Use
@@ -239,6 +240,7 @@ It is **not** a drop-in replacement for higher-level frameworks or runtimes.
 - C11-compatible compiler
 - C11 atomics support
 - POSIX threads (`pthread`) for multithreading utilities (Threadpool)
+- Yield is only x86-64 for now
 - Linux environment recommended
 
 ---

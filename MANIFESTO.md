@@ -82,14 +82,11 @@ Every abstraction in this repository must justify itself in terms of:
 - composability
 - long-term maintainability
 
-If an abstraction hides too much, it does not belong here.
-
 ---
 
 ## Long-Term Thinking
 
 This library is written with the assumption that:
-- compilers change
 - frameworks come and go
 - trends fade
 

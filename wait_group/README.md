@@ -5,7 +5,7 @@ The **Wait Group** is a minimal synchronization primitive used to wait for a gro
 It provides a simple, explicit mechanism to **block until a counter reaches zero**, without spawning threads, allocating memory, 
 or hiding execution behavior.
 
-This module is intentionally small and low-level, designed to compose naturally with other utilities in this repository, 
+This module is intentionally small, designed to compose naturally with other utilities in this repository, 
 especially the **Job System**.
 
 ---
@@ -23,7 +23,6 @@ Threads may increment or decrement this counter, and one or more threads may wai
 The `WaitGroup` itself is completely scheduler-agnostic
 
 ---
-
 ## API
 
 ```c
@@ -128,8 +127,6 @@ int main() {
 | Thread Pool | Task execution              |
 | Job System  | Dependency-aware scheduling |
 | Wait Group  | Phase synchronization       |
-
-The Wait Group is intentionally small, does one thing well and composes with the rest of the system.
 
 ---
 
