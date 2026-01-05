@@ -25,7 +25,7 @@ int stack_push(Stack *s, const void *elem) {
   if (!s->items || s->count > s->cap)
     return -1;
   s->sp -= s->elem_size;
-  memcpy((uint8_t *)s->sp, elem, s->elem_size);
+  memcpy((uint8_t *)s->sp, (uint8_t *)elem, s->elem_size);
   s->count++;
   return 0;
 }

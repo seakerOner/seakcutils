@@ -17,7 +17,7 @@ CHANNELS = ./channels/
 ARENAS = ./arenas/
 DATA_STRUCTURES = ./data_structures/
 
-test: main.o jobsystem.o threadpool.o mpmc.o r_arena.o yield.o deque.o
+test: main.o linkedlist.o
 	$(CC) $(BUILD)*.o -o $(BUILD)/test
 
 main.o: main.c 
@@ -74,6 +74,10 @@ stack.o: $(DATA_STRUCTURES)stack.c $(DATA_STRUCTURES)stack.h
 # Build Deque Data Structure
 deque.o: $(DATA_STRUCTURES)deque.c $(DATA_STRUCTURES)deque.h
 	$(CC) $(FLAGS) -c $(DATA_STRUCTURES)deque.c -o $(BUILD)deque.o
+
+# Build Linked List Data Structure
+linkedlist.o: $(DATA_STRUCTURES)linkedlist.c $(DATA_STRUCTURES)linkedlist.h
+	$(CC) $(FLAGS) -c $(DATA_STRUCTURES)linkedlist.c -o $(BUILD)linkedlist.o
 
 clean:
 	rm -f $(BUILD)*
