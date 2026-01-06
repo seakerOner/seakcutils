@@ -204,6 +204,41 @@ Key characteristics:
 See `arenas/README.md` for detailed API documentation, guarantees, and usage rules.
  
 ---
+### Data Structures (`data_structures/`)
+
+A collection of **fundamental, data structures** intended for internal
+use by other modules in this repository.
+
+These implementations are **not STL-like** and do not aim to provide
+high-level safety, polymorphism, or developer-friendly abstractions.
+They exist to serve as **explicit, predictable building blocks** in systems code.
+
+Currently included:
+
+- **Stack**
+  - Fixed-capacity, array-backed stack
+  - Explicit push/pop semantics
+
+- **Linked List**
+  - Doubly-linked list
+  - No sentinels exposed at the API level
+  - Includes both standard and constant-time comparison search variants
+
+- **Deque**
+  - Fixed-capacity deque implemented as a ring buffer
+  - Logical (monotonic) head/tail indices with wrap-on-access
+  - Push/pop from both ends in O(1)
+  - No resizing, no hidden allocations
+
+**Design Characteristics**
+- Fixed capacity where applicable
+- No hidden memory allocation beyond explicit construction (Except Linked List)
+- Explicit failure modes (full / empty)
+
+These data structures are intentionally **minimally documented**.
+The code and headers are expected to be read directly by users of this module.
+
+---
 ### Strings (`strings/`)
 
 **ASCII-only** string utilities focused on explicit, byte-level manipulation.
