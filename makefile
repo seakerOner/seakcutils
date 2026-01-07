@@ -17,67 +17,11 @@ CHANNELS = ./channels/
 ARENAS = ./arenas/
 DATA_STRUCTURES = ./data_structures/
 
-test: main.o linkedlist.o
+test: main.o
 	$(CC) $(BUILD)*.o -o $(BUILD)/test
 
-main.o: main.c 
+main.o: main.c
 	$(CC) $(FLAGS) -c main.c -o $(BUILD)main.o
-
-# Build threadpool 
-threadpool.o: $(THREADPOOL)threadpool.h $(THREADPOOL)threadpool.c 
-	$(CC) $(FLAGS) -c $(THREADPOOL)threadpool.c -o $(BUILD)threadpool.o
-
-# Build jobSystem
-jobsystem.o: $(JOBSYSTEM)jobsystem.h $(JOBSYSTEM)jobsystem.c 
-	$(CC) $(FLAGS) -c $(JOBSYSTEM)jobsystem.c -o $(BUILD)jobsystem.o
-
-# Build Async yield
-yield.o: $(YIELD)yield.c $(YIELD)yield.h
-	$(CC) $(FLAGS) -c $(YIELD)yield.c -o $(BUILD)yield.o
-
-# Build WaitGroup
-waitg.o: $(WG)waitg.h $(WG)waitg.c 
-	$(CC) $(FLAGS) -c $(WG)waitg.c -o $(BUILD)waitg.o
-
-# Build SPSC Channel
-spsc.o: $(CHANNELS)spsc.c $(CHANNELS)spsc.h
-	$(CC) $(FLAGS) -c $(CHANNELS)spsc.c -o $(BUILD)spsc.o
-
-# Build SPMC Channel
-spmc.o: $(CHANNELS)spmc.c $(CHANNELS)spmc.h
-	$(CC) $(FLAGS) -c $(CHANNELS)spmc.c -o $(BUILD)spmc.o
-
-# Build MPSC Channel
-mpsc.o: $(CHANNELS)mpsc.c $(CHANNELS)mpsc.h
-	$(CC) $(FLAGS) -c $(CHANNELS)mpsc.c -o $(BUILD)mpsc.o
-
-# Build MPMC Channel
-mpmc.o: $(CHANNELS)mpmc.c $(CHANNELS)mpmc.h
-	$(CC) $(FLAGS) -c $(CHANNELS)mpmc.c -o $(BUILD)mpmc.o
-
-# Build Region Arena
-r_arena.o: $(ARENAS)r_arena.c $(ARENAS)r_arena.h
-	$(CC) $(FLAGS) -c $(ARENAS)r_arena.c -o $(BUILD)r_arena.o
-
-# Build Generic Arena
-arena.o: $(ARENAS)arena.c $(ARENAS)arena.h
-	$(CC) $(FLAGS) -c $(ARENAS)arena.c -o $(BUILD)arena.o
-
-# Build String Arena
-s_arena.o: $(ARENAS)string_arena.c $(ARENAS)string_arena.h
-	$(CC) $(FLAGS) -c $(ARENAS)string_arena.c -o $(BUILD)string_arena.o
-
-# Build Stack Data Structure
-stack.o: $(DATA_STRUCTURES)stack.c $(DATA_STRUCTURES)stack.h
-	$(CC) $(FLAGS) -c $(DATA_STRUCTURES)stack.c -o $(BUILD)stack.o
-
-# Build Deque Data Structure
-deque.o: $(DATA_STRUCTURES)deque.c $(DATA_STRUCTURES)deque.h
-	$(CC) $(FLAGS) -c $(DATA_STRUCTURES)deque.c -o $(BUILD)deque.o
-
-# Build Linked List Data Structure
-linkedlist.o: $(DATA_STRUCTURES)linkedlist.c $(DATA_STRUCTURES)linkedlist.h
-	$(CC) $(FLAGS) -c $(DATA_STRUCTURES)linkedlist.c -o $(BUILD)linkedlist.o
 
 clean:
 	rm -f $(BUILD)*

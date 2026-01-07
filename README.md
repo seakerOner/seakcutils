@@ -25,12 +25,12 @@ I don't use it, if you want it ask me for it or do it yourself)
 
 ---
 
-## Repository Structure
+## Header-only (stb-style):
 
-Each utility lives in its own directory and includes:
-- implementation (`.c`)
-- public API (`.h`)
-- a dedicated `README.md` describing design decisions, guarantees, and usage
+Each module is implemented in a single .h file
+
+- Users explicitly enable implementations via #define MODULE_IMPLEMENTATION
+- a dedicated `README.md` per directory describing design decisions, guarantees, and usage
 
 ---
 

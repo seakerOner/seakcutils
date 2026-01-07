@@ -7,6 +7,7 @@
 #include <time.h>
 
 #include "../channels/mpsc.h"
+#define MPSC_IMPLEMENTATION
 
 /*
  * Time: 0.308 s
